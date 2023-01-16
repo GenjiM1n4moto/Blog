@@ -46,3 +46,10 @@ UPDATE users
 set hashed_password = $2
 WHERE username = $1
 RETURNING *;
+
+-- name: UpdateEmail :one
+UPDATE users
+set email = $2
+WHERE username = $1
+RETURNING *;
+

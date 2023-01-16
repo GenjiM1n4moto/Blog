@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createArticle = `-- name: CreateArticle :one
@@ -16,7 +17,7 @@ INSERT INTO articles (
   content
 ) VALUES (
   $1, $2, $3
-) RETURNING article_id, title, author_username, content
+) RETURNING article_id, title, author_username, content, create_at, changed_at
 `
 
 type CreateArticleParams struct {
@@ -33,6 +34,8 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (A
 		&i.Title,
 		&i.AuthorUsername,
 		&i.Content,
+		&i.CreateAt,
+		&i.ChangedAt,
 	)
 	return i, err
 }
@@ -45,4 +48,82 @@ WHERE article_id = $1
 func (q *Queries) DeleteArticle(ctx context.Context, articleID int64) error {
 	_, err := q.db.ExecContext(ctx, deleteArticle, articleID)
 	return err
+}
+
+const updateArticleChangeAt = `-- name: UpdateArticleChangeAt :one
+UPDATE articles
+set changed_at = $2
+WHERE article_id = $1
+RETURNING article_id, title, author_username, content, create_at, changed_at
+`
+
+type UpdateArticleChangeAtParams struct {
+	ArticleID int64     `json:"article_id"`
+	ChangedAt time.Time `json:"changed_at"`
+}
+
+func (q *Queries) UpdateArticleChangeAt(ctx context.Context, arg UpdateArticleChangeAtParams) (Article, error) {
+	row := q.db.QueryRowContext(ctx, updateArticleChangeAt, arg.ArticleID, arg.ChangedAt)
+	var i Article
+	err := row.Scan(
+		&i.ArticleID,
+		&i.Title,
+		&i.AuthorUsername,
+		&i.Content,
+		&i.CreateAt,
+		&i.ChangedAt,
+	)
+	return i, err
+}
+
+const updateArticleContent = `-- name: UpdateArticleContent :one
+UPDATE articles
+set content = $2
+WHERE article_id = $1
+RETURNING article_id, title, author_username, content, create_at, changed_at
+`
+
+type UpdateArticleContentParams struct {
+	ArticleID int64  `json:"article_id"`
+	Content   string `json:"content"`
+}
+
+func (q *Queries) UpdateArticleContent(ctx context.Context, arg UpdateArticleContentParams) (Article, error) {
+	row := q.db.QueryRowContext(ctx, updateArticleContent, arg.ArticleID, arg.Content)
+	var i Article
+	err := row.Scan(
+		&i.ArticleID,
+		&i.Title,
+		&i.AuthorUsername,
+		&i.Content,
+		&i.CreateAt,
+		&i.ChangedAt,
+	)
+	return i, err
+}
+
+const updateTitle = `-- name: UpdateTitle :one
+UPDATE articles
+set title = $2
+WHERE article_id = $1
+RETURNING article_id, title, author_username, content, create_at, changed_at
+`
+
+type UpdateTitleParams struct {
+	ArticleID int64  `json:"article_id"`
+	Title     string `json:"title"`
+}
+
+func (q *Queries) UpdateTitle(ctx context.Context, arg UpdateTitleParams) (Article, error) {
+	row := q.db.QueryRowContext(ctx, updateTitle, arg.ArticleID, arg.Title)
+	var i Article
+	err := row.Scan(
+		&i.ArticleID,
+		&i.Title,
+		&i.AuthorUsername,
+		&i.Content,
+		&i.CreateAt,
+		&i.ChangedAt,
+	)
+	return i, err
 }

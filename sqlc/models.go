@@ -5,22 +5,23 @@
 package db
 
 import (
-	"database/sql"
 	"time"
 )
 
 type Article struct {
-	ArticleID      int64  `json:"article_id"`
-	Title          string `json:"title"`
-	AuthorUsername string `json:"author_username"`
-	Content        string `json:"content"`
+	ArticleID      int64     `json:"article_id"`
+	Title          string    `json:"title"`
+	AuthorUsername string    `json:"author_username"`
+	Content        string    `json:"content"`
+	CreateAt       time.Time `json:"create_at"`
+	ChangedAt      time.Time `json:"changed_at"`
 }
 
 type User struct {
-	Username          string         `json:"username"`
-	HashedPassword    string         `json:"hashed_password"`
-	PasswordChangedat time.Time      `json:"password_changedat"`
-	Email             string         `json:"email"`
-	Nickname          sql.NullString `json:"nickname"`
-	CreateAt          time.Time      `json:"create_at"`
+	Username          string    `json:"username"`
+	HashedPassword    string    `json:"hashed_password"`
+	PasswordChangedat time.Time `json:"password_changedat"`
+	Email             string    `json:"email"`
+	Nickname          string    `json:"nickname"`
+	CreateAt          time.Time `json:"create_at"`
 }

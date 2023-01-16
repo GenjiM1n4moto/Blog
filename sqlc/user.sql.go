@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -22,10 +21,10 @@ INSERT INTO users (
 `
 
 type CreateUserParams struct {
-	Username       string         `json:"username"`
-	HashedPassword string         `json:"hashed_password"`
-	Email          string         `json:"email"`
-	Nickname       sql.NullString `json:"nickname"`
+	Username       string `json:"username"`
+	HashedPassword string `json:"hashed_password"`
+	Email          string `json:"email"`
+	Nickname       string `json:"nickname"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -81,7 +80,7 @@ SELECT username, hashed_password, password_changedat, email, nickname, create_at
 WHERE nickname = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserBynickname(ctx context.Context, nickname sql.NullString) (User, error) {
+func (q *Queries) GetUserBynickname(ctx context.Context, nickname string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserBynickname, nickname)
 	var i User
 	err := row.Scan(
@@ -176,6 +175,32 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 	return items, nil
 }
 
+const updateEmail = `-- name: UpdateEmail :one
+UPDATE users
+set email = $2
+WHERE username = $1
+RETURNING username, hashed_password, password_changedat, email, nickname, create_at
+`
+
+type UpdateEmailParams struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+func (q *Queries) UpdateEmail(ctx context.Context, arg UpdateEmailParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateEmail, arg.Username, arg.Email)
+	var i User
+	err := row.Scan(
+		&i.Username,
+		&i.HashedPassword,
+		&i.PasswordChangedat,
+		&i.Email,
+		&i.Nickname,
+		&i.CreateAt,
+	)
+	return i, err
+}
+
 const updateNickname = `-- name: UpdateNickname :one
 UPDATE users
 set nickname = $2
@@ -184,8 +209,8 @@ RETURNING username, hashed_password, password_changedat, email, nickname, create
 `
 
 type UpdateNicknameParams struct {
-	Username string         `json:"username"`
-	Nickname sql.NullString `json:"nickname"`
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
 }
 
 func (q *Queries) UpdateNickname(ctx context.Context, arg UpdateNicknameParams) (User, error) {
